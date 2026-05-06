@@ -25,6 +25,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  # Large Gemma 4 E2B (.litertlm) files: add only locally and uncomment:
-  # assets:
-  #   - assets/models/
+  assets:
+    - assets/models/

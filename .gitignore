@@ -14,7 +14,6 @@ Thumbs.db
 
 # Local Gemma / LiteRT models (very large; do not commit)
 *.litertlm
-assets/models/
 **/gemma-*.litertlm
 
 # Flutter SDK path (user-specific)
