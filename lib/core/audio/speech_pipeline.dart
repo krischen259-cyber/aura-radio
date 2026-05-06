@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -18,6 +19,13 @@ class BedtimeTtsPipeline {
   static Future<BedtimeTtsPipeline> create() async {
     final t = FlutterTts();
     final p = BedtimeTtsPipeline._(t);
+    // Without this, Android often completes `speak()` before playback ends; the next
+    // `speak()` uses QUEUE_FLUSH and cancels the previous line — sounds like "no audio".
+    await t.awaitSpeakCompletion(true);
+    if (!kIsWeb && Platform.isAndroid) {
+      await t.setQueueMode(1);
+    }
+    t.setErrorHandler((m) => debugPrint('TTS platform error: $m'));
     await t.setLanguage('en-US');
     await t.setSpeechRate(0.38);
     await t.setVolume(voiceVolume);

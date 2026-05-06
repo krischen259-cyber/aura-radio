@@ -42,6 +42,12 @@ final gemmaServiceProvider = Provider<GemmaService>((ref) {
   return s;
 });
 
+/// Whether `gemma-4-e2b-it.litertlm` is available (support dir or bundled asset).
+final gemmaModelAvailableProvider = FutureProvider<bool>((ref) async {
+  final path = await ref.watch(gemmaServiceProvider).ensureModelFile();
+  return path != null;
+});
+
 final radioBroadcastProvider =
     NotifierProvider<RadioBroadcastNotifier, RadioUiState>(RadioBroadcastNotifier.new);
 

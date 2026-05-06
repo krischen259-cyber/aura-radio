@@ -24,6 +24,7 @@ class _DiyRadioPageState extends ConsumerState<DiyRadioPage> {
   @override
   Widget build(BuildContext context) {
     final s = ref.watch(radioBroadcastProvider);
+    final modelAsync = ref.watch(gemmaModelAvailableProvider);
     return Scaffold(
       appBar: AppBar(
         title: const Text('DIY Radio Station'),
@@ -39,6 +40,44 @@ class _DiyRadioPageState extends ConsumerState<DiyRadioPage> {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
+            modelAsync.when(
+              data: (ok) => ok
+                  ? const SizedBox.shrink()
+                  : Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Material(
+                        color: const Color(0xFF2A2419),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.info_outline,
+                                color: Theme.of(context).colorScheme.tertiary,
+                                size: 22,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  'No Gemma model on device — demo script only (not real AI). '
+                                  'Audio should still play via TTS after you tap Start.\n\n'
+                                  'Add gemma-4-e2b-it.litertlm to app storage (see README) or bundle under assets/models/ to enable full radio.',
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        color: const Color(0xFFD4C4A8),
+                                        height: 1.35,
+                                      ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+              loading: () => const SizedBox.shrink(),
+              error: (_, __) => const SizedBox.shrink(),
+            ),
             Text(
               'Topic',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
