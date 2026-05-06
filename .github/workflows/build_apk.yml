@@ -1,5 +1,8 @@
 # 在 GitHub 云端打 Android APK（无需本机访问 Google）
 # 使用：把本工程推送到 GitHub → Actions → 选择本 workflow → Run workflow → 完成后下载 Artifacts 里的 APK
+#
+# 说明：部分 Flutter + AGP 8.x 组合下 Gradle 已成功但 CLI 报「failed to produce an .apk」，
+# APK 实际在 android/app/build/outputs/...。下方脚本会从多处汇总到 build/app/outputs/flutter-apk/。
 name: Build Android APK
 
 on:
@@ -25,21 +28,66 @@ jobs:
       - name: Accept Android licenses
         run: yes | sdkmanager --licenses || true
 
+      - name: Native build helpers (CMake / LiteRT)
+        run: sudo apt-get update -qq && sudo apt-get install -y ninja-build pkg-config
+
       - name: Flutter (stable)
         uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
 
+      - name: Flutter precache (Android)
+        run: flutter precache --android
+
       - name: Dependencies
         run: flutter pub get
 
-      - name: Build APK (release)
-        run: flutter build apk --release
+      - name: Make Gradlew executable
+        run: chmod +x android/gradlew
+
+      - name: Build APK (release) + collect outputs
+        shell: bash
+        run: |
+          set +e
+          flutter build apk --release
+          flutter_exit=$?
+          set -e
+
+          mkdir -p build/app/outputs/flutter-apk
+          shopt -s nullglob
+
+          # 汇总 Gradle 实际产出路径（与新式 Flutter Gradle 插件 / AGP 行为一致）
+          for dir in \
+            android/app/build/outputs/flutter-apk \
+            android/app/build/outputs/apk/release \
+            android/app/build/outputs/apk/debug; do
+            if [[ -d "$dir" ]]; then
+              for apk in "$dir"/*.apk; do
+                [[ -f "$apk" ]] || continue
+                cp -fv "$apk" build/app/outputs/flutter-apk/
+              done
+            fi
+          done
+
+          echo "---- build/app/outputs/flutter-apk ----"
+          ls -la build/app/outputs/flutter-apk/ || true
+
+          shopt -s nullglob
+          apks=(build/app/outputs/flutter-apk/*.apk)
+          if [[ ${#apks[@]} -eq 0 ]]; then
+            echo "::error::未找到任何 APK。flutter 退出码=$flutter_exit。尝试在整个 android/app/build 下搜索："
+            find android/app/build -name '*.apk' -type f 2>/dev/null || true
+            exit 1
+          fi
+
+          if [[ "$flutter_exit" -ne 0 ]]; then
+            echo "::notice::Flutter CLI 曾报错，但已从 Gradle 输出目录收集到 APK。"
+          fi
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: aura-radio-release-apk
           path: build/app/outputs/flutter-apk/*.apk
-          if-no-files-found: warn
+          if-no-files-found: error
