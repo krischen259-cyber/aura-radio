@@ -1,0 +1,41 @@
+# Dart / Flutter
+.dart_tool/
+.packages
+build/
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Local Gemma / LiteRT models (very large; do not commit)
+*.litertlm
+assets/models/
+**/gemma-*.litertlm
+
+# Flutter SDK path (user-specific)
+local.properties
+**/local.properties
+
+# iOS
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/ephemeral/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Runner/GeneratedPluginRegistrant.*
+
+# Android
+android/app/.cxx/
+**/android/.gradle/
+**/android/captures/
+**/android/local.properties
+**/android/**/GeneratedPluginRegistrant.java
+
+# Misc
+*.log

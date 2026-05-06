@@ -1,0 +1,9 @@
+# This file tracks properties of this Flutter project.
+# It is useful for the Flutter tool and IDEs. Do not check in hand-edited
+# project metadata — prefer `flutter pub get` to refresh.
+
+version:
+  revision: "manual"
+  channel: "stable"
+
+project_type: app

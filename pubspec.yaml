@@ -1,0 +1,30 @@
+name: aura_radio
+description: AuraRadio - local AI bedtime stories with LiteRT and TTS
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  audio_session: ^0.1.25
+  flutter_litert_lm: ^0.3.0
+  flutter_riverpod: ^2.6.1
+  flutter_tts: ^4.2.0
+  google_mlkit_commons: ^0.7.0
+  just_audio: ^0.9.46
+  path_provider: ^2.1.5
+  path: ^1.9.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  # Large Gemma 4 E2B (.litertlm) files: add only locally and uncomment:
+  # assets:
+  #   - assets/models/

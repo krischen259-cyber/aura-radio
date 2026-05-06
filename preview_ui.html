@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AuraRadio — UI 预览</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --midnight: #0a1628;
+      --surface: #0d2137;
+      --text: #e7ecf2;
+      --muted: #7a8a99;
+      --amber: #e8b86d;
+      --border: #2a3f5a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--midnight);
+      color: var(--text);
+      font-family: "Outfit", system-ui, sans-serif;
+    }
+    .appbar {
+      padding: 16px 20px 8px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+    .wrap {
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 0 20px 32px;
+    }
+    h2 {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--text);
+      margin: 0 0 8px 0;
+    }
+    input {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(13, 33, 55, 0.75);
+      color: var(--text);
+      font: inherit;
+      margin-bottom: 16px;
+    }
+    input::placeholder { color: var(--muted); }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+    .chip {
+      padding: 8px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 0.85rem;
+      cursor: default;
+    }
+    .chip.sel { border-color: var(--amber); background: rgba(232, 184, 109, 0.15); }
+    button.primary {
+      width: 100%;
+      padding: 16px 24px;
+      border: none;
+      border-radius: 14px;
+      background: var(--amber);
+      color: var(--midnight);
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .hint {
+      margin-top: 20px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .panel {
+      margin-top: 20px;
+      padding: 14px;
+      border-radius: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      font-size: 0.88rem;
+      line-height: 1.45;
+    }
+  </style>
+</head>
+<body>
+  <div class="appbar">DIY Radio Station</div>
+  <div class="wrap">
+    <h2>Topic</h2>
+    <input type="text" readonly value="Ancient History" />
+    <h2>Presets</h2>
+    <div class="chips">
+      <span class="chip sel">Ancient History</span>
+      <span class="chip">Space Exploration</span>
+      <span class="chip">Deep Sea</span>
+    </div>
+    <button class="primary" type="button">Start Broadcast</button>
+    <p class="hint">本页仅展示深色主题与布局。真机需安装 Flutter 后运行 <code>flutter run</code> 才能看到完整交互、TTS 与 LiteRT。</p>
+    <div class="panel">
+      <strong>Ready</strong> — 设置话题并开始，即可在真机上体验：本地模型流式出稿、逐句朗读、低音量氛围层与锁屏听音（受系统限制）。
+    </div>
+  </div>
+</body>
+</html>
