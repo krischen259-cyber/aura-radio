@@ -22,5 +22,18 @@ void main() {
       final b = SentenceBuffer();
       expect(b.pushChunk('Mr. Smith went home.'), equals(['Mr. Smith went home.']));
     });
+
+    test('splits Chinese sentence endings', () {
+      final b = SentenceBuffer();
+      expect(b.pushChunk('夜深了。博物馆'), equals(['夜深了。']));
+      expect(b.flushRemainder(), '博物馆');
+    });
+
+    test('sentencesFromFullText merges remainder', () {
+      expect(
+        SentenceBuffer.sentencesFromFullText('第一段。第二段'),
+        equals(['第一段。', '第二段']),
+      );
+    });
   });
 }

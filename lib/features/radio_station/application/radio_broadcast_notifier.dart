@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/ai/deepseek_client.dart';
@@ -10,6 +11,7 @@ import '../../../core/audio/speech_pipeline.dart';
 import '../../../shared/utils/history_topic.dart';
 import '../../../shared/utils/sentence_buffer.dart';
 import 'llm_settings_notifier.dart';
+import 'tts_voice_settings_notifier.dart';
 
 enum RadioPhase { idle, loading, generating, speaking, error }
 
@@ -105,7 +107,13 @@ class RadioBroadcastNotifier extends Notifier<RadioUiState> {
       await _atmo!.setVolume(AtmospherePlayer.defaultVolume);
       await _atmo!.init();
       unawaited(_atmo!.play());
-      _tts = await BedtimeTtsPipeline.create();
+      await ref.read(ttsVoiceSettingsProvider.notifier).ensureLoaded();
+      final ttsCfg = ref.read(ttsVoiceSettingsProvider);
+      _tts = await BedtimeTtsPipeline.create(
+        language: ttsCfg.language,
+        voice: ttsCfg.voice,
+        speechRate: ttsCfg.speechRate,
+      );
     } catch (e) {
       state = RadioUiState(
         phase: RadioPhase.error,
@@ -225,5 +233,32 @@ class RadioBroadcastNotifier extends Notifier<RadioUiState> {
       await _atmo?.dispose();
     } catch (_) {}
     _atmo = null;
+  }
+
+  /// Clears TTS queue only (LLM stream / 底噪 unchanged).
+  Future<void> stopSpeechOnly() async {
+    await _tts?.stop();
+  }
+
+  /// Re-reads current transcript with saved voice settings (use after 整场 idle or to retry).
+  Future<void> replayAccumulatedSpeech() async {
+    final text = state.accumulatedText.trim();
+    if (text.isEmpty) return;
+    try {
+      await configureRadioAudioSession();
+      await ref.read(ttsVoiceSettingsProvider.notifier).ensureLoaded();
+      final ttsCfg = ref.read(ttsVoiceSettingsProvider);
+      _tts ??= await BedtimeTtsPipeline.create(
+        language: ttsCfg.language,
+        voice: ttsCfg.voice,
+        speechRate: ttsCfg.speechRate,
+      );
+      await _tts!.stop();
+      for (final line in SentenceBuffer.sentencesFromFullText(text)) {
+        _tts!.enqueue(line);
+      }
+    } catch (e, st) {
+      debugPrint('replayAccumulatedSpeech: $e\n$st');
+    }
   }
 }

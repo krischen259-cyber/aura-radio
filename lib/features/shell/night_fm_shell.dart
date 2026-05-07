@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/night_fm_theme.dart';
 import '../radio_station/application/bookmarks_notifier.dart';
 import '../radio_station/application/llm_settings_notifier.dart';
+import '../radio_station/application/tts_voice_settings_notifier.dart';
 import '../radio_station/presentation/pages/explore_radio_page.dart';
 import '../radio_station/presentation/pages/library_radio_page.dart';
 import '../radio_station/presentation/pages/night_fm_radio_page.dart';
@@ -28,6 +29,7 @@ class _NightFmShellState extends ConsumerState<NightFmShell> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(llmSettingsProvider.notifier).load();
       ref.read(bookmarksProvider.notifier).load();
+      ref.read(ttsVoiceSettingsProvider.notifier).load();
     });
   }
 

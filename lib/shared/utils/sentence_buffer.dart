@@ -2,6 +2,15 @@
 class SentenceBuffer {
   final StringBuffer _buf = StringBuffer();
 
+  /// One-shot split for replay / offline queues (handles CN `。！？` and Latin `.!?`).
+  static List<String> sentencesFromFullText(String text) {
+    final b = SentenceBuffer();
+    final out = <String>[...b.pushChunk(text)];
+    final tail = b.flushRemainder();
+    if (tail != null && tail.isNotEmpty) out.add(tail);
+    return out;
+  }
+
   /// Pushes a new text chunk. Returns 0+ completed sentences to speak.
   List<String> pushChunk(String chunk) {
     if (chunk.isEmpty) return const [];
@@ -34,15 +43,24 @@ class SentenceBuffer {
     return out;
   }
 
-  /// Finds `.` `!` `?` that likely end a sentence.
+  /// Latin `.!?` (with light spacing rules) and CJK `。！？`.
   int? _nextSentenceEnd(String s) {
     for (var p = 0; p < s.length; p++) {
       final c = s[p];
+      if (c == '。' || c == '！' || c == '？') {
+        return p;
+      }
       if (c != '.' && c != '!' && c != '?') continue;
       if (c == '.' && _isAbbrevDot(s, p)) continue;
       if (p + 1 < s.length) {
         final n = s[p + 1];
-        if (n == ' ' || n == '\n' || n == '\t' || n == '”' || n == '"') {
+        if (n == ' ' ||
+            n == '\n' ||
+            n == '\t' ||
+            n == '”' ||
+            n == '"' ||
+            n == '』' ||
+            n == '」') {
           return p;
         }
       } else {

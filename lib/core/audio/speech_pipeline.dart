@@ -14,22 +14,34 @@ class BedtimeTtsPipeline {
   Future<void>? _runner;
   var _disposed = false;
 
-  static const double voiceVolume = 0.95;
+  static const double defaultVoiceVolume = 0.95;
 
-  static Future<BedtimeTtsPipeline> create() async {
+  /// [language] should match content (e.g. `zh-CN` for Chinese scripts).
+  static Future<BedtimeTtsPipeline> create({
+    String language = 'zh-CN',
+    Map<String, String>? voice,
+    double speechRate = 0.42,
+    double pitch = 1.0,
+    double volume = defaultVoiceVolume,
+  }) async {
     final t = FlutterTts();
     final p = BedtimeTtsPipeline._(t);
-    // Without this, Android often completes `speak()` before playback ends; the next
-    // `speak()` uses QUEUE_FLUSH and cancels the previous line — sounds like "no audio".
     await t.awaitSpeakCompletion(true);
     if (!kIsWeb && Platform.isAndroid) {
       await t.setQueueMode(1);
     }
     t.setErrorHandler((m) => debugPrint('TTS platform error: $m'));
-    await t.setLanguage('en-US');
-    await t.setSpeechRate(0.38);
-    await t.setVolume(voiceVolume);
-    await t.setPitch(0.95);
+    await t.setLanguage(language);
+    if (voice != null && voice.isNotEmpty) {
+      try {
+        await t.setVoice(Map<String, String>.from(voice));
+      } catch (e) {
+        debugPrint('TTS setVoice skipped: $e');
+      }
+    }
+    await t.setSpeechRate(speechRate);
+    await t.setVolume(volume.clamp(0.0, 1.0));
+    await t.setPitch(pitch.clamp(0.5, 2.0));
     return p;
   }
 

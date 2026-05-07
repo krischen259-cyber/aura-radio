@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../application/llm_settings_notifier.dart';
 import '../../application/radio_broadcast_notifier.dart';
+import '../../application/tts_voice_settings_notifier.dart';
 import '../../../../core/ai/deepseek_client.dart';
 
 /// DeepSeek / 本地模型相关设置。
@@ -18,6 +19,8 @@ class SettingsRadioPage extends ConsumerStatefulWidget {
 class _SettingsRadioPageState extends ConsumerState<SettingsRadioPage> {
   late TextEditingController _apiKeyCtrl;
   late TextEditingController _baseUrlCtrl;
+  List<Map<String, String>> _ttsVoices = [];
+  var _ttsVoicesLoading = false;
 
   @override
   void initState() {
@@ -26,14 +29,42 @@ class _SettingsRadioPageState extends ConsumerState<SettingsRadioPage> {
     _baseUrlCtrl = TextEditingController();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await ref.read(llmSettingsProvider.notifier).load();
+      await ref.read(ttsVoiceSettingsProvider.notifier).load();
       final s = ref.read(llmSettingsProvider);
       if (!mounted) return;
       setState(() {
         _apiKeyCtrl.text = s.apiKey;
         _baseUrlCtrl.text = s.baseUrl;
       });
+      await _refreshTtsVoices();
     });
   }
+
+  Future<void> _refreshTtsVoices() async {
+    final lang = ref.read(ttsVoiceSettingsProvider).language;
+    setState(() => _ttsVoicesLoading = true);
+    final list =
+        await ref.read(ttsVoiceSettingsProvider.notifier).fetchVoicesForLanguage(lang);
+    if (!mounted) return;
+    setState(() {
+      _ttsVoices = list;
+      _ttsVoicesLoading = false;
+    });
+  }
+
+  int _ttsVoiceDropdownValue(TtsVoiceSettingsState tts) {
+    final v = tts.voice;
+    if (v == null) return -1;
+    for (var i = 0; i < _ttsVoices.length; i++) {
+      if (_ttsVoices[i]['name'] == v['name'] &&
+          _ttsVoices[i]['locale'] == v['locale']) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  String _ttsSpeechRateLabel(double r) => '×${r.toStringAsFixed(2)}';
 
   @override
   void dispose() {
@@ -55,6 +86,7 @@ class _SettingsRadioPageState extends ConsumerState<SettingsRadioPage> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final llm = ref.watch(llmSettingsProvider);
+    final tts = ref.watch(ttsVoiceSettingsProvider);
     final modelAsync = ref.watch(gemmaModelAvailableProvider);
 
     final dropdownModel =
@@ -160,19 +192,112 @@ class _SettingsRadioPageState extends ConsumerState<SettingsRadioPage> {
               ),
             ),
             const Divider(height: 32),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: Icon(Icons.record_voice_over_outlined, color: scheme.primary),
-              title: const Text('朗读引擎'),
-              subtitle: const Text(
-                '使用系统文字转语音（TTS）。若听不到英文，请在系统设置中为 TTS 安装英语语音包。',
+            Text(
+              '朗读语音（系统 TTS）',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(color: scheme.onSurface),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              '中文电台文稿默认按所选语言朗读。若无声音，请在系统「无障碍 / 文字转语音」中安装中文语音包。',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                    height: 1.35,
+                  ),
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              value: tts.loaded ? tts.language : kTtsLanguageChoices.first.$1, // ignore: deprecated_member_use
+              decoration: const InputDecoration(labelText: '朗读语言'),
+              items: [
+                for (final e in kTtsLanguageChoices)
+                  DropdownMenuItem(value: e.$1, child: Text(e.$2)),
+              ],
+              onChanged: !tts.loaded
+                  ? null
+                  : (v) async {
+                      if (v == null) return;
+                      await ref.read(ttsVoiceSettingsProvider.notifier).setLanguage(v);
+                      await ref.read(ttsVoiceSettingsProvider.notifier).setVoice(null);
+                      await _refreshTtsVoices();
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('已切换朗读语言，如需固定音色请重新选择')),
+                      );
+                    },
+            ),
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: _ttsVoicesLoading ? null : _refreshTtsVoices,
+                icon: _ttsVoicesLoading
+                    ? SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: scheme.primary),
+                      )
+                    : const Icon(Icons.refresh_rounded),
+                label: Text(_ttsVoicesLoading ? '读取音色列表…' : '刷新本机音色列表'),
               ),
+            ),
+            DropdownButtonFormField<int>(
+              value: _ttsVoiceDropdownValue(tts), // ignore: deprecated_member_use
+              decoration: const InputDecoration(labelText: '音色'),
+              items: [
+                const DropdownMenuItem(
+                  value: -1,
+                  child: Text('系统默认（引擎自动）'),
+                ),
+                ...List.generate(
+                  _ttsVoices.length,
+                  (i) => DropdownMenuItem(
+                    value: i,
+                    child: Text(
+                      '${_ttsVoices[i]['name']} · ${_ttsVoices[i]['locale']}',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+              ],
+              onChanged: !tts.loaded
+                  ? null
+                  : (idx) async {
+                      if (idx == null) return;
+                      if (idx < 0) {
+                        await ref.read(ttsVoiceSettingsProvider.notifier).setVoice(null);
+                      } else if (idx < _ttsVoices.length) {
+                        await ref.read(ttsVoiceSettingsProvider.notifier).setVoice(_ttsVoices[idx]);
+                      }
+                    },
+            ),
+            if (_ttsVoices.isEmpty && !_ttsVoicesLoading && tts.loaded)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  '未读到该语言的音色列表：请先在系统中下载对应语音数据，再点「刷新」。',
+                  style: TextStyle(color: scheme.error, fontSize: 12, height: 1.35),
+                ),
+              ),
+            const SizedBox(height: 8),
+            Text(
+              '语速 ${_ttsSpeechRateLabel(tts.loaded ? tts.speechRate : 0.42)}',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+            ),
+            Slider(
+              value: tts.loaded ? tts.speechRate : 0.42,
+              min: 0.25,
+              max: 0.65,
+              divisions: 16,
+              label: _ttsSpeechRateLabel(tts.loaded ? tts.speechRate : 0.42),
+              onChanged: !tts.loaded
+                  ? null
+                  : (v) => ref.read(ttsVoiceSettingsProvider.notifier).setSpeechRate(v),
             ),
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: Icon(Icons.volume_down_rounded, color: scheme.primary),
               title: const Text('氛围底噪'),
-              subtitle: const Text('开播时会播放极低音量循环底噪；暂停播报即停止。'),
+              subtitle: const Text('开播时会播放极低音量循环底噪；点「暂停本场播报」即停止整场与朗读。'),
             ),
             const Divider(height: 32),
             Text(

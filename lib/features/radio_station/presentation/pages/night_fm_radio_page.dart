@@ -214,6 +214,28 @@ class _NightFmRadioPageState extends ConsumerState<NightFmRadioPage>
                               ),
                             ),
                           ),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 10,
+                            runSpacing: 8,
+                            children: [
+                              OutlinedButton.icon(
+                                onPressed: () => ref
+                                    .read(radioBroadcastProvider.notifier)
+                                    .replayAccumulatedSpeech(),
+                                icon: const Icon(Icons.volume_up_rounded, size: 20),
+                                label: const Text('朗读文稿'),
+                              ),
+                              OutlinedButton.icon(
+                                onPressed: () => ref
+                                    .read(radioBroadcastProvider.notifier)
+                                    .stopSpeechOnly(),
+                                icon:
+                                    const Icon(Icons.stop_circle_outlined, size: 20),
+                                label: const Text('停止朗读'),
+                              ),
+                            ],
+                          ),
                         ],
                       ],
                     ),
