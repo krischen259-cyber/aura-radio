@@ -18,6 +18,7 @@ import 'gemma_isolate.dart'
         kGemmaDelta,
         kGemmaDone,
         kGemmaError;
+import 'radio_prompts.dart';
 import '../../shared/utils/history_topic.dart';
 
 /// Loads Gemma (LiteRT-LM `.litertlm`) and streams bedtime radio copy.
@@ -30,9 +31,6 @@ class GemmaService {
   /// Cached engine on the **main** isolate (used when the worker isolate is unavailable).
   LiteLmEngine? _mainEngine;
   String? _engineModelPath;
-
-  static const String kSystemInstruction =
-      'You are a professional radio host with a soothing, deep voice.';
 
   /// Resolves a readable `.litertlm` path: app support dir first, then small asset copy.
   Future<String?> ensureModelFile() async {
@@ -65,18 +63,6 @@ class GemmaService {
     }
   }
 
-  String _buildUserPrompt(String topic, String? context) {
-    final b = StringBuffer()
-      ..write(
-        'Narrate the following history topic in a calm, sleep-inducing way: $topic.',
-      );
-    if (context != null && context.trim().isNotEmpty) {
-      b.write(' Use this reference for factual accuracy when it applies:\n');
-      b.write(context.trim());
-    }
-    return b.toString();
-  }
-
   /// Optional extra RAG / search text for the LiteRT-LM `extraContext` map.
   Map<String, Object>? _extraForLiteRt(String topic, String? context) {
     if (context == null || context.isEmpty) return null;
@@ -94,8 +80,8 @@ class GemmaService {
     bool useBackgroundIsolate = true,
   }) async* {
     final path = await ensureModelFile();
-    final system = kSystemInstruction;
-    final user = _buildUserPrompt(topic, context);
+    final system = kRadioSystemInstruction;
+    final user = buildRadioUserPrompt(topic, context);
     final extra = _extraForLiteRt(topic, context);
 
     if (path == null) {

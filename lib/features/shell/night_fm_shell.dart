@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/night_fm_theme.dart';
+import '../radio_station/application/llm_settings_notifier.dart';
 import '../radio_station/presentation/pages/explore_radio_page.dart';
 import '../radio_station/presentation/pages/library_radio_page.dart';
 import '../radio_station/presentation/pages/night_fm_radio_page.dart';
@@ -19,6 +20,14 @@ class NightFmShell extends ConsumerStatefulWidget {
 
 class _NightFmShellState extends ConsumerState<NightFmShell> {
   int _index = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(llmSettingsProvider.notifier).load();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,16 +59,14 @@ class _NightFmShellState extends ConsumerState<NightFmShell> {
           Padding(
             padding: const EdgeInsets.fromLTRB(28, 0, 28, 28),
             child: ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(18)),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
                 child: Material(
                   color: Colors.white.withValues(alpha: 0.42),
                   elevation: 0,
                   child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
@@ -126,17 +133,13 @@ class _NavDot extends StatelessWidget {
           curve: Curves.easeOut,
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: filled
-                ? Colors.white.withValues(alpha: 0.55)
-                : Colors.transparent,
+            color: filled ? Colors.white.withValues(alpha: 0.55) : Colors.transparent,
             shape: BoxShape.circle,
           ),
           child: Icon(
             icon,
             size: 26,
-            color: filled
-                ? c.primary
-                : const Color(0xFF666660).withValues(alpha: 0.65),
+            color: filled ? c.primary : const Color(0xFF666660).withValues(alpha: 0.65),
           ),
         ),
       ),

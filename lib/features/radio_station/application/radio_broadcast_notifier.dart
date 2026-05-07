@@ -2,12 +2,14 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/ai/deepseek_client.dart';
 import '../../../core/ai/gemma_service.dart';
 import '../../../core/audio/atmosphere_player.dart';
 import '../../../core/audio/radio_audio_session.dart';
 import '../../../core/audio/speech_pipeline.dart';
 import '../../../shared/utils/history_topic.dart';
 import '../../../shared/utils/sentence_buffer.dart';
+import 'llm_settings_notifier.dart';
 
 enum RadioPhase { idle, loading, generating, speaking, error }
 
@@ -62,8 +64,7 @@ final gemmaModelAvailableProvider = FutureProvider<bool>((ref) async {
 });
 
 final radioBroadcastProvider =
-    NotifierProvider<RadioBroadcastNotifier, RadioUiState>(
-        RadioBroadcastNotifier.new);
+    NotifierProvider<RadioBroadcastNotifier, RadioUiState>(RadioBroadcastNotifier.new);
 
 class RadioBroadcastNotifier extends Notifier<RadioUiState> {
   StreamSubscription<String>? _llmSub;
@@ -123,12 +124,27 @@ class RadioBroadcastNotifier extends Notifier<RadioUiState> {
     );
 
     final context = isHistoryTopic(topic) ? searchContextForTopic(topic) : null;
-    final gemma = ref.read(gemmaServiceProvider);
+    await ref.read(llmSettingsProvider.notifier).ensureLoaded();
+    final cfg = ref.read(llmSettingsProvider);
+
+    late final Stream<String> scriptStream;
+    if (cfg.cloudReady) {
+      final base =
+          cfg.baseUrl.trim().isEmpty ? kDeepseekDefaultBaseUrl : cfg.baseUrl.trim();
+      scriptStream = DeepseekRadioClient(
+        apiKey: cfg.apiKey.trim(),
+        baseUrl: base,
+        model: cfg.model.trim().isEmpty ? kDeepseekModelFlash : cfg.model.trim(),
+      ).streamRadioScript(topic, context: context);
+    } else {
+      scriptStream =
+          ref.read(gemmaServiceProvider).generateRadioScript(topic, context: context);
+    }
+
     final buffer = SentenceBuffer();
     final acc = StringBuffer();
 
-    final stream = gemma.generateRadioScript(topic, context: context);
-    _llmSub = stream.listen(
+    _llmSub = scriptStream.listen(
       (delta) {
         acc.write(delta);
         for (final line in buffer.pushChunk(delta)) {
