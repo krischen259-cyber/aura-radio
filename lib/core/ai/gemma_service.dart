@@ -10,13 +10,14 @@ import 'package:flutter_litert_lm/flutter_litert_lm.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
-import 'gemma_isolate.dart' show
-    GemmaIsolateRequest,
-    GemmaIsolateStart,
-    gemmaIsolateEntry,
-    kGemmaDelta,
-    kGemmaDone,
-    kGemmaError;
+import 'gemma_isolate.dart'
+    show
+        GemmaIsolateRequest,
+        GemmaIsolateStart,
+        gemmaIsolateEntry,
+        kGemmaDelta,
+        kGemmaDone,
+        kGemmaError;
 import '../../shared/utils/history_topic.dart';
 
 /// Loads Gemma (LiteRT-LM `.litertlm`) and streams bedtime radio copy.
@@ -45,7 +46,8 @@ class GemmaService {
       final map = json.decode(manifest) as Map<String, dynamic>;
       if (!map.containsKey(kModelAssetKey)) {
         if (kDebugMode) {
-          debugPrint('AuraRadio: no $kModelFileName in support dir; asset not in bundle.');
+          debugPrint(
+              'AuraRadio: no $kModelFileName in support dir; asset not in bundle.');
         }
         return null;
       }
@@ -149,7 +151,8 @@ class GemmaService {
         errorsAreFatal: false,
       );
       var done = false;
-      await for (final message in receivePort.timeout(const Duration(minutes: 20))) {
+      await for (final message
+          in receivePort.timeout(const Duration(minutes: 20))) {
         if (message is! List) continue;
         if (message.isEmpty) continue;
         final tag = message[0];

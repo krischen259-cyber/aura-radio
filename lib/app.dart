@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'core/theme/app_theme.dart';
-import 'features/radio_station/presentation/pages/diy_radio_page.dart';
+import 'core/theme/night_fm_theme.dart';
+import 'features/shell/night_fm_shell.dart';
 
 class AuraRadioApp extends StatelessWidget {
   const AuraRadioApp({super.key});
@@ -9,11 +9,11 @@ class AuraRadioApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'AuraRadio',
+      title: 'Night FM',
       debugShowCheckedModeBanner: false,
-      themeMode: ThemeMode.dark,
-      theme: AppTheme.dark(),
-      home: const DiyRadioPage(),
+      themeMode: ThemeMode.light,
+      theme: nightFmTheme(),
+      home: const NightFmShell(),
     );
   }
 }

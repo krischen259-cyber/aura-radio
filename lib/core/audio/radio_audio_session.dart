@@ -5,7 +5,8 @@ Future<void> configureRadioAudioSession() async {
   final session = await AudioSession.instance;
   await session.configure(
     AudioSessionConfiguration.speech().copyWith(
-      avAudioSessionCategoryOptions: AVAudioSessionCategoryOptions.mixWithOthers,
+      avAudioSessionCategoryOptions:
+          AVAudioSessionCategoryOptions.mixWithOthers,
       androidAudioAttributes: const AndroidAudioAttributes(
         contentType: AndroidAudioContentType.music,
         flags: AndroidAudioFlags.none,

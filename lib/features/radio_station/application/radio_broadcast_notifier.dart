@@ -16,22 +16,35 @@ class RadioUiState {
     required this.phase,
     this.error,
     this.accumulatedText = '',
+    this.activeTopic,
+    this.stationLabel,
   });
 
   final RadioPhase phase;
   final String? error;
   final String accumulatedText;
 
+  /// Last / current broadcast topic (user-facing).
+  final String? activeTopic;
+
+  /// e.g. 晚安博物馆 — shown on the player chrome.
+  final String? stationLabel;
+
   RadioUiState copyWith({
     RadioPhase? phase,
     String? error,
     bool clearError = false,
     String? accumulatedText,
+    String? activeTopic,
+    String? stationLabel,
+    bool clearStation = false,
   }) {
     return RadioUiState(
       phase: phase ?? this.phase,
       error: clearError ? null : (error ?? this.error),
       accumulatedText: accumulatedText ?? this.accumulatedText,
+      activeTopic: activeTopic ?? this.activeTopic,
+      stationLabel: clearStation ? null : (stationLabel ?? this.stationLabel),
     );
   }
 }
@@ -49,7 +62,8 @@ final gemmaModelAvailableProvider = FutureProvider<bool>((ref) async {
 });
 
 final radioBroadcastProvider =
-    NotifierProvider<RadioBroadcastNotifier, RadioUiState>(RadioBroadcastNotifier.new);
+    NotifierProvider<RadioBroadcastNotifier, RadioUiState>(
+        RadioBroadcastNotifier.new);
 
 class RadioBroadcastNotifier extends Notifier<RadioUiState> {
   StreamSubscription<String>? _llmSub;
@@ -61,18 +75,28 @@ class RadioBroadcastNotifier extends Notifier<RadioUiState> {
     return const RadioUiState(phase: RadioPhase.idle);
   }
 
-  Future<void> startBroadcast(String rawTopic) async {
+  Future<void> startBroadcast(
+    String rawTopic, {
+    String? stationLabel,
+  }) async {
     final topic = rawTopic.trim();
     if (topic.isEmpty) {
-      state = const RadioUiState(
+      state = RadioUiState(
         phase: RadioPhase.error,
-        error: 'Please enter a topic.',
+        error: '请输入或选择一个主题。',
+        activeTopic: state.activeTopic,
+        stationLabel: state.stationLabel,
       );
       return;
     }
 
     await _releaseAudio();
-    state = const RadioUiState(phase: RadioPhase.loading, accumulatedText: '');
+    state = RadioUiState(
+      phase: RadioPhase.loading,
+      accumulatedText: '',
+      activeTopic: topic,
+      stationLabel: stationLabel ?? state.stationLabel,
+    );
 
     try {
       await configureRadioAudioSession();
@@ -82,11 +106,21 @@ class RadioBroadcastNotifier extends Notifier<RadioUiState> {
       unawaited(_atmo!.play());
       _tts = await BedtimeTtsPipeline.create();
     } catch (e) {
-      state = RadioUiState(phase: RadioPhase.error, error: 'Audio init failed: $e');
+      state = RadioUiState(
+        phase: RadioPhase.error,
+        error: '音频初始化失败：$e',
+        activeTopic: state.activeTopic,
+        stationLabel: state.stationLabel,
+      );
       return;
     }
 
-    state = const RadioUiState(phase: RadioPhase.generating, accumulatedText: '');
+    state = RadioUiState(
+      phase: RadioPhase.generating,
+      accumulatedText: '',
+      activeTopic: topic,
+      stationLabel: stationLabel ?? state.stationLabel,
+    );
 
     final context = isHistoryTopic(topic) ? searchContextForTopic(topic) : null;
     final gemma = ref.read(gemmaServiceProvider);
@@ -106,7 +140,12 @@ class RadioBroadcastNotifier extends Notifier<RadioUiState> {
         }
       },
       onError: (e) async {
-        state = RadioUiState(phase: RadioPhase.error, error: '$e');
+        state = RadioUiState(
+          phase: RadioPhase.error,
+          error: '$e',
+          activeTopic: topic,
+          stationLabel: stationLabel ?? state.stationLabel,
+        );
         await _releaseAudio();
       },
       onDone: () {
@@ -117,6 +156,8 @@ class RadioBroadcastNotifier extends Notifier<RadioUiState> {
         state = state.copyWith(
           phase: RadioPhase.speaking,
           accumulatedText: acc.toString(),
+          activeTopic: topic,
+          stationLabel: stationLabel ?? state.stationLabel,
         );
         Future<void>.delayed(const Duration(seconds: 1), () {
           if (state.phase == RadioPhase.speaking) {
@@ -134,7 +175,12 @@ class RadioBroadcastNotifier extends Notifier<RadioUiState> {
     _llmSub = null;
     await _releaseAudio();
     if (state.phase != RadioPhase.error) {
-      state = const RadioUiState(phase: RadioPhase.idle, accumulatedText: '');
+      state = RadioUiState(
+        phase: RadioPhase.idle,
+        accumulatedText: '',
+        activeTopic: state.activeTopic,
+        stationLabel: state.stationLabel,
+      );
     }
   }
 
