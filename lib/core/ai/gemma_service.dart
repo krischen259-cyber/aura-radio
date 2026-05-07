@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:ui' show RootIsolateToken;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -80,7 +79,7 @@ class GemmaService {
     bool useBackgroundIsolate = true,
   }) async* {
     final path = await ensureModelFile();
-    final system = kRadioSystemInstruction;
+    const system = kRadioSystemInstruction;
     final user = buildRadioUserPrompt(topic, context);
     final extra = _extraForLiteRt(topic, context);
 

@@ -83,7 +83,7 @@ class DeepseekRadioClient {
             continue;
           }
 
-          final delta = _extractDeltaText(obj);
+          final delta = extractDeltaContentFromChunk(obj);
           if (delta != null && delta.isNotEmpty) {
             yield delta;
           }
@@ -97,7 +97,7 @@ class DeepseekRadioClient {
   }
 
   /// OpenAI-style chunk: `choices[0].delta.content` (string or null).
-  static String? _extractDeltaText(Map<String, dynamic> obj) {
+  static String? extractDeltaContentFromChunk(Map<String, dynamic> obj) {
     final choices = obj['choices'];
     if (choices is! List || choices.isEmpty) return null;
     final first = choices.first;

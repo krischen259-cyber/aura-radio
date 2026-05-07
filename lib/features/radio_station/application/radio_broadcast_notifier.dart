@@ -169,9 +169,21 @@ class RadioBroadcastNotifier extends Notifier<RadioUiState> {
         if (tail != null && tail.isNotEmpty) {
           _tts?.enqueue(tail);
         }
+        final fullText = acc.toString();
+        if (fullText.trim().isEmpty) {
+          unawaited(_releaseAudio());
+          state = RadioUiState(
+            phase: RadioPhase.error,
+            error:
+                '未生成文稿（内容为空）。请检查网络与 DeepSeek API Key，或本地 Gemma 模型。',
+            activeTopic: topic,
+            stationLabel: stationLabel ?? state.stationLabel,
+          );
+          return;
+        }
         state = state.copyWith(
           phase: RadioPhase.speaking,
-          accumulatedText: acc.toString(),
+          accumulatedText: fullText,
           activeTopic: topic,
           stationLabel: stationLabel ?? state.stationLabel,
         );

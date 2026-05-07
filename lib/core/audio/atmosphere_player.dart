@@ -35,7 +35,7 @@ class AtmospherePlayer {
   Future<void> _writeSoftNoiseWav(File f) async {
     const sampleRate = 22050;
     const seconds = 2;
-    final n = sampleRate * seconds;
+    const n = sampleRate * seconds;
     final r = Random();
     final pcm = Int16List(n);
     for (var i = 0; i < n; i++) {
@@ -61,7 +61,7 @@ class AtmospherePlayer {
     const numChannels = 1;
     const bitsPerSample = 16;
     final byteRate = sampleRate * numChannels * (bitsPerSample ~/ 8);
-    final blockAlign = numChannels * (bitsPerSample ~/ 8);
+    const blockAlign = numChannels * (bitsPerSample ~/ 8);
     const chunk1Size = 16;
     final chunk2Size = dataByteLength;
     final riffChunkSize = 36 + chunk2Size;
@@ -79,7 +79,7 @@ class AtmospherePlayer {
       0x6D,
       0x74,
       0x20,
-      ..._u32le(16),
+      ..._u32le(chunk1Size),
       ..._u16le(1),
       ..._u16le(numChannels),
       ..._u32le(sampleRate),

@@ -1,6 +1,5 @@
 import 'dart:async' show scheduleMicrotask;
 import 'dart:isolate';
-import 'dart:ui' show RootIsolateToken;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';

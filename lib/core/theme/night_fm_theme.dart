@@ -17,18 +17,18 @@ abstract final class NightFmColors {
 }
 
 ThemeData nightFmTheme() {
-  final baseScheme = ColorScheme.light(
+  const baseScheme = ColorScheme.light(
     primary: NightFmColors.primary,
     onPrimary: Colors.white,
-    primaryContainer: const Color(0xFFD1E9F6),
+    primaryContainer: Color(0xFFD1E9F6),
     onPrimaryContainer: NightFmColors.onPrimaryContainer,
-    secondary: const Color(0xFF536258),
+    secondary: Color(0xFF536258),
     onSecondary: Colors.white,
     surface: NightFmColors.surface,
     onSurface: NightFmColors.onSurface,
     error: NightFmColors.error,
     onError: Colors.white,
-    outline: const Color(0xFF73787B),
+    outline: Color(0xFF73787B),
     outlineVariant: NightFmColors.outlineVariant,
   );
 

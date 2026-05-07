@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../application/bookmarks_notifier.dart';
 
-/// 收藏的主题清单（会话内；退出应用后不保留）。
+/// 收藏的主题清单（写入本地偏好；最多 40 条）。
 class LibraryRadioPage extends ConsumerWidget {
   const LibraryRadioPage({super.key});
 

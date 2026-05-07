@@ -432,7 +432,7 @@ class _NightFmRadioPageState extends ConsumerState<NightFmRadioPage>
                     ),
                   ),
                   alignment: Alignment.center,
-                  child: Icon(Icons.graphic_eq_rounded,
+                  child: const Icon(Icons.graphic_eq_rounded,
                       size: 56, color: Colors.white70),
                 ),
               ),
