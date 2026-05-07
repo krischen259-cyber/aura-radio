@@ -47,7 +47,8 @@ class LlmSettingsState {
 }
 
 final llmSettingsProvider =
-    NotifierProvider<LlmSettingsNotifier, LlmSettingsState>(LlmSettingsNotifier.new);
+    NotifierProvider<LlmSettingsNotifier, LlmSettingsState>(
+        LlmSettingsNotifier.new);
 
 class LlmSettingsNotifier extends Notifier<LlmSettingsState> {
   @override
@@ -55,11 +56,16 @@ class LlmSettingsNotifier extends Notifier<LlmSettingsState> {
 
   Future<void> load() async {
     final p = await SharedPreferences.getInstance();
+    var model = p.getString(_kModel) ?? kDeepseekModelFlash;
+    if (model != kDeepseekModelFlash && model != kDeepseekModelPro) {
+      model = kDeepseekModelFlash;
+      await p.setString(_kModel, model);
+    }
     state = LlmSettingsState(
       loaded: true,
       useDeepseek: p.getBool(_kUseDeepseek) ?? false,
       apiKey: p.getString(_kApiKey) ?? '',
-      model: p.getString(_kModel) ?? kDeepseekModelFlash,
+      model: model,
       baseUrl: p.getString(_kBaseUrl) ?? '',
     );
   }
@@ -83,9 +89,11 @@ class LlmSettingsNotifier extends Notifier<LlmSettingsState> {
   }
 
   Future<void> setModel(String v) async {
+    final safe =
+        v == kDeepseekModelPro ? kDeepseekModelPro : kDeepseekModelFlash;
     final p = await SharedPreferences.getInstance();
-    await p.setString(_kModel, v);
-    state = state.copyWith(model: v, loaded: true);
+    await p.setString(_kModel, safe);
+    state = state.copyWith(model: safe, loaded: true);
   }
 
   Future<void> setBaseUrl(String v) async {

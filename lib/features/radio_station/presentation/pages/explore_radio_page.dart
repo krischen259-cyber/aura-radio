@@ -15,62 +15,65 @@ class ExploreRadioPage extends ConsumerWidget {
     final station =
         NightFmStation.all[idx.clamp(0, NightFmStation.all.length - 1)];
 
-    return SafeArea(
-      bottom: false,
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(24, 20, 24, 120),
-        children: [
-          Text(
-            '探索节目',
-            style: Theme.of(context)
-                .textTheme
-                .headlineSmall
-                ?.copyWith(fontWeight: FontWeight.w500),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '先选择一档人格电台，再从预设文案出发改写今夜主题；也可完全自定义。',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  height: 1.45,
-                ),
-          ),
-          const SizedBox(height: 20),
-          Text('人格电台', style: Theme.of(context).textTheme.titleSmall),
-          const SizedBox(height: 8),
-          DropdownButtonFormField<int>(
-            // ignore: deprecated_member_use
-            value: idx,
-            decoration: const InputDecoration(),
-            items: [
-              for (var i = 0; i < NightFmStation.all.length; i++)
-                DropdownMenuItem(
-                  value: i,
-                  child: Text(
-                      '${NightFmStation.all[i].nameZh} · ${NightFmStation.all[i].fmBand}'),
-                ),
-            ],
-            onChanged: (v) {
-              if (v != null) {
-                ref.read(stationSelectionProvider.notifier).state = v;
-              }
-            },
-          ),
-          const SizedBox(height: 8),
-          Text(
-            station.subtitleZh,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-          ),
-          const SizedBox(height: 24),
-          BroadcastTopicPanel(
-            key: ValueKey(station.id),
-            initialTopic: station.topicPrompt,
-            stationLabel: station.nameZh,
-            showGrabHandle: false,
-          ),
-        ],
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: SafeArea(
+        bottom: false,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 120),
+          children: [
+            Text(
+              '探索节目',
+              style: Theme.of(context)
+                  .textTheme
+                  .headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '先选择一档人格电台，再从预设文案出发改写今夜主题；也可完全自定义。',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    height: 1.45,
+                  ),
+            ),
+            const SizedBox(height: 20),
+            Text('人格电台', style: Theme.of(context).textTheme.titleSmall),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<int>(
+              // ignore: deprecated_member_use
+              value: idx,
+              decoration: const InputDecoration(),
+              items: [
+                for (var i = 0; i < NightFmStation.all.length; i++)
+                  DropdownMenuItem(
+                    value: i,
+                    child: Text(
+                        '${NightFmStation.all[i].nameZh} · ${NightFmStation.all[i].fmBand}'),
+                  ),
+              ],
+              onChanged: (v) {
+                if (v != null) {
+                  ref.read(stationSelectionProvider.notifier).state = v;
+                }
+              },
+            ),
+            const SizedBox(height: 8),
+            Text(
+              station.subtitleZh,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+            const SizedBox(height: 24),
+            BroadcastTopicPanel(
+              key: ValueKey(station.id),
+              initialTopic: station.topicPrompt,
+              stationLabel: station.nameZh,
+              showGrabHandle: false,
+            ),
+          ],
+        ),
       ),
     );
   }
